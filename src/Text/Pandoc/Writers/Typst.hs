@@ -309,13 +309,20 @@ blockToTypst block =
                           $$ ")" $$ lab $$ blankline
     Div (ident,_,_) (Header lev ("",cls,kvs) ils:rest) ->
       blocksToTypst (Header lev (ident,cls,kvs) ils:rest)
-    Div (ident,_,kvs) blocks -> do
+    Div (ident,cls,kvs) blocks -> do
       let lab = toLabel FreestandingLabel ident
       let (typstAttrs,typstTextAttrs) = pickTypstAttrs kvs
       contents <- blocksToTypst blocks
-      return $ "#block" <> toTypstPropsListParens typstAttrs <> "["
+      return $ "#block" <> toTypstPropsListParens (typstClasses ++ typstAttrs)  <> "["
         $$ toTypstSetText typstTextAttrs <> contents
         $$ ("]" <+> lab)
+      where
+        typstClasses = case cls of
+          [] -> []
+          [c] -> [("class", formatTypstString c)]
+          cs -> [("class", formatTypstArray cs)]
+        formatTypstArray xs = "(" <> T.intercalate ", " (map formatTypstString xs) <> ")"
+        formatTypstString x = "\"" <> x <> "\""
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
 defListItemToTypst (term, defns) = do

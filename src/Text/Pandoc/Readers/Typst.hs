@@ -291,8 +291,9 @@ blockHandlers = M.fromList
       let attr = (fromMaybe "" mbident, maybe [] (\l -> [l]) mblang, [])
       pure $ B.codeBlockWith attr txt)
   ,("parbreak", \_ _ -> pure mempty)
-  ,("block", \mbident fields ->
-      B.divWith (fromMaybe "" mbident, [], [])
+  ,("block", \mbident fields -> do
+      (cls :: Text) <- getField "class" fields --FIXME: how to parse multiple classes?
+      B.divWith (fromMaybe "" mbident, [cls], [])
         <$> (getField "body" fields >>= pWithContents pBlocks))
   ,("place", \_ fields -> do
       ignored "parameters of place"
